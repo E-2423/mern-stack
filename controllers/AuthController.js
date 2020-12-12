@@ -1,27 +1,40 @@
-exports.auth_register = (req, res) => {
-    //TODO: Register func.
-    //req.body.firstName
+const User = require("../models/UserModel");
+const bcrypt = require("bcryptjs");
 
-    const {firstName, lastName, email, password} = req.body;
-    console.log("Fields:",
-      firstName, 
-      lastName, 
-      email,
-      password
-    ); 
+exports.authRegister = async (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
 
-    //TODO1:Validate the field
-    // TODO2:check already registered
-    //TODO3:crpyt password
-    //TODO4:save the user to DB
+  // TODO1: Validate the fields
 
+  const userData = await User.findOne({ email });
 
-    res.send("Register Completed.");
-  };
-  
-  exports.auth_login = (req, res) => {
-    // TODO: Auth.
-    // TODO: Login func.
-    res.send("Login Completed");
-  };
+  if (userData) {
+    return res
+      .status(400)
+      .json({ errors: [{ message: "User already exists!!" }] });
+  }
+
+  const salt = await bcrypt.genSalt(10);
+
+  const newPassword = await bcrypt.hash(password, salt);
+
+  const user = new User({
+    firstName,
+    lastName,
+    email,
+    password: newPassword,
+  });
+
+  await user.save();
+
+  //TODO: Error handling for saving
+  res.send("Register Completed.");
+};
+
+exports.authLogin = (req, res) => {
+  // TODO: Auth.
+  // TODO: Login func.
+  res.send("Login Completed");
+};
+
   
